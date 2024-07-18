@@ -36,6 +36,21 @@ def move_player():
         x = -5
     if move_directions['d']:
         x = 5
+
+    # Get the current position of the player
+    player_coords = canvas.coords(player)
+
+    # Check for canvas boundaries
+    if player_coords[0] + x < 0:
+        x = -player_coords[0]  # Prevent moving left off the canvas
+    if player_coords[1] + y < 0:
+        y = -player_coords[1]  # Prevent moving up off the canvas
+    if player_coords[2] + x > canvas_width:
+        x = canvas_width - player_coords[2]  # Prevent moving right off the canvas
+    if player_coords[3] + y > canvas_height:
+        y = canvas_height - player_coords[3]  # Prevent moving down off the canvas
+
+    # Move the player
     canvas.move(player, x, y)
     root.after(20, move_player)  # Call move_player every 20 ms for smooth movement
 
