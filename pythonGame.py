@@ -22,24 +22,39 @@ player = canvas.create_rectangle(
     fill="blue"
 )
 
-# Movement functions
-def move_Player(event):
-    x, y = 0, 0
-    if event.keysym == 'w':
-        y = -10
-    elif event.keysym == 's':
-        y = 10
-    elif event.keysym == 'a':
-        x = -10
-    elif event.keysym == 'd':
-        x = 10
-    canvas.move(player, x, y)
+# Movement state
+move_directions = {'w': False, 's': False, 'a': False, 'd': False}
 
-# Bind WASD keys to the movement functions
-root.bind('<w>', move_Player)
-root.bind('<s>', move_Player)
-root.bind('<a>', move_Player)
-root.bind('<d>', move_Player)
+# Move the player in the current direction
+def move_player():
+    x, y = 0, 0
+    if move_directions['w']:
+        y = -5
+    if move_directions['s']:
+        y = 5
+    if move_directions['a']:
+        x = -5
+    if move_directions['d']:
+        x = 5
+    canvas.move(player, x, y)
+    root.after(20, move_player)  # Call move_player every 20 ms for smooth movement
+
+# Key press event handler
+def on_key_press(event):
+    if event.keysym in move_directions:
+        move_directions[event.keysym] = True
+
+# Key release event handler
+def on_key_release(event):
+    if event.keysym in move_directions:
+        move_directions[event.keysym] = False
+
+# Bind key events
+root.bind('<KeyPress>', on_key_press)
+root.bind('<KeyRelease>', on_key_release)
+
+# Start the movement loop
+move_player()
 
 # Run the main loop
 root.mainloop()
