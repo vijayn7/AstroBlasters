@@ -1,10 +1,8 @@
 import math
-import random
 import tkinter as tk
 from player import Player
 from enemy import BasicDrone, FastScout, ArmoredTank, FighterJet, CamouflagedStealth, SuicideBomber, EliteGuardian, SwarmDrone
-
-enemies = []
+import random
 
 # Create the main window
 root = tk.Tk()
@@ -15,6 +13,8 @@ canvas_width = 1000
 canvas_height = 800
 canvas = tk.Canvas(root, width=canvas_width, height=canvas_height, bg="black")
 canvas.pack()
+
+enemies = []  # Global list to hold enemies
 
 def create_home_screen(canvas):
     # Draw the title of the game
@@ -51,45 +51,49 @@ def transition_to_mode_selection():
 
 def transition_to_game(mode):
     canvas.delete("all")  # Clear the mode selection screen
-
-    # Initialize the game elements based on the selected mode
+    # Initialize the game elements based on selected mode
     player_size = 30
     player_x = canvas_width // 2
     player_y = canvas_height // 2
     player = Player(canvas, player_x, player_y, player_size, mode)  # Pass mode to Player
-
-    # Initialize the list of enemies
-    global enemies
-    enemies = []
-
-    if mode == "Orbital Defense":
-        spawn_enemies(canvas, player_x, player_y)
 
     # Bind key events to the Player instance methods
     root.bind('<KeyPress>', player.on_key_press)
     root.bind('<KeyRelease>', player.on_key_release)
     canvas.bind('<Motion>', player.on_mouse_motion)
 
+    # Spawn enemies around the player
+    spawn_enemies(mode, player.x, player.y)
+
     # Start the movement loop
     player.move()
+    update_enemies()
 
-def spawn_enemies(canvas, player_x, player_y):
+def spawn_enemies(mode, player_x, player_y):
+    global enemies
     enemy_types = [BasicDrone, FastScout, ArmoredTank, FighterJet, CamouflagedStealth, SuicideBomber, EliteGuardian, SwarmDrone]
-    num_enemies = 10  # Number of enemies to spawn
     
-    for _ in range(num_enemies):
-        # Random distance and angle from the player
-        distance = random.randint(100, 300)  # Distance from the player
-        angle = random.uniform(0, 2 * math.pi)  # Random angle
+    # Spawn enemies in a random position around the player
+    for _ in range(10):  # Number of enemies
+        enemy_type = random.choice(enemy_types)
+        angle = random.uniform(0, 2 * math.pi)
+        distance = random.uniform(100, 300)  # Random distance from the player
         x = player_x + distance * math.cos(angle)
         y = player_y + distance * math.sin(angle)
-
-        # Randomly select an enemy type
-        enemy_class = random.choice(enemy_types)
         
-        # Create the enemy
-        enemy = enemy_class(canvas, x, y, player_x, player_y)
-        enemies.append(enemy)  # Add to the list of enemies
+        enemy = enemy_type(canvas, x, y, player_x, player_y)
+        enemies.append(enemy)
+
+def update_enemies():
+    global enemies
+    for enemy in enemies:
+        if not enemy.is_out_of_bounds():
+            enemy.move()
+        else:
+            enemies.remove(enemy)
+    
+    # Schedule the next update
+    canvas.after(50, update_enemies)
 
 # Create the home screen
 create_home_screen(canvas)

@@ -55,7 +55,6 @@ class Enemy:
         canvas_height = self.canvas.winfo_height()
         return not (0 <= self.x <= canvas_width and 0 <= self.y <= canvas_height)
 
-
 class BasicDrone(Enemy):
     def __init__(self, canvas, x, y, player_x, player_y):
         super().__init__(canvas, x, y, player_x, player_y)
@@ -64,7 +63,6 @@ class BasicDrone(Enemy):
     def create_shape(self):
         self.shape_type = "oval"
         self.shape = self.canvas.create_oval(self.x - 10, self.y - 10, self.x + 10, self.y + 10, fill="blue")
-
 
 class FastScout(Enemy):
     def __init__(self, canvas, x, y, player_x, player_y):
@@ -76,7 +74,6 @@ class FastScout(Enemy):
         self.shape_type = "oval"
         self.shape = self.canvas.create_oval(self.x - 8, self.y - 8, self.x + 8, self.y + 8, fill="green")
 
-
 class ArmoredTank(Enemy):
     def __init__(self, canvas, x, y, player_x, player_y):
         super().__init__(canvas, x, y, player_x, player_y)
@@ -87,18 +84,6 @@ class ArmoredTank(Enemy):
         self.shape_type = "rectangle"
         self.shape = self.canvas.create_rectangle(self.x - 15, self.y - 15, self.x + 15, self.y + 15, fill="red")
 
-
-class FighterJet(Enemy):
-    def __init__(self, canvas, x, y, player_x, player_y):
-        super().__init__(canvas, x, y, player_x, player_y)
-        self.speed = 3
-        self.movement_type = "circular"
-
-    def create_shape(self):
-        self.shape_type = "polygon"
-        self.shape = self.canvas.create_polygon(self.x - 10, self.y - 10, self.x + 10, self.y, self.x - 10, self.y + 10, fill="white")
-
-
 class CamouflagedStealth(Enemy):
     def __init__(self, canvas, x, y, player_x, player_y):
         super().__init__(canvas, x, y, player_x, player_y)
@@ -107,7 +92,6 @@ class CamouflagedStealth(Enemy):
     def create_shape(self):
         self.shape_type = "oval"
         self.shape = self.canvas.create_oval(self.x - 10, self.y - 10, self.x + 10, self.y + 10, fill="gray")
-
 
 class SuicideBomber(Enemy):
     def __init__(self, canvas, x, y, player_x, player_y):
@@ -119,17 +103,45 @@ class SuicideBomber(Enemy):
         self.shape_type = "polygon"
         self.shape = self.canvas.create_polygon(self.x - 10, self.y - 10, self.x + 10, self.y - 10, self.x, self.y + 10, fill="purple")
 
+class FighterJet(Enemy):
+    def __init__(self, canvas, x, y, player_x, player_y):
+        super().__init__(canvas, x, y, player_x, player_y)
+        self.speed = 3
+        self.movement_type = "zigzag"
+
+    def create_shape(self):
+        self.shape_type = "polygon"
+        self.shape = self.canvas.create_polygon(self.x - 10, self.y - 10, self.x + 10, self.y, self.x - 10, self.y + 10, fill="white")
+
+    def move(self):
+        # Example of zigzag movement
+        angle_rad = math.atan2(self.player_y - self.y, self.player_x - self.x)
+        zigzag_angle = angle_rad + (0.3 * math.sin(self.x / 50))  # Adjust for more/less zigzag
+        self.x += self.speed * math.cos(zigzag_angle)
+        self.y += self.speed * math.sin(zigzag_angle)
+
+        # Update the enemy's position on the canvas
+        self.canvas.coords(self.shape, self.x - 10, self.y - 10, self.x + 10, self.y, self.x - 10, self.y + 10)
 
 class EliteGuardian(Enemy):
     def __init__(self, canvas, x, y, player_x, player_y):
         super().__init__(canvas, x, y, player_x, player_y)
-        self.speed = 1
-        self.movement_type = "circular"
+        self.speed = 2
+        self.movement_type = "zigzag"
 
     def create_shape(self):
         self.shape_type = "rectangle"
         self.shape = self.canvas.create_rectangle(self.x - 12, self.y - 12, self.x + 12, self.y + 12, fill="gold")
 
+    def move(self):
+        # Example of zigzag movement
+        angle_rad = math.atan2(self.player_y - self.y, self.player_x - self.x)
+        zigzag_angle = angle_rad + (0.3 * math.sin(self.x / 50))  # Adjust for more/less zigzag
+        self.x += self.speed * math.cos(zigzag_angle)
+        self.y += self.speed * math.sin(zigzag_angle)
+
+        # Update the enemy's position on the canvas
+        self.canvas.coords(self.shape, self.x - 12, self.y - 12, self.x + 12, self.y + 12)
 
 class SwarmDrone(Enemy):
     def __init__(self, canvas, x, y, player_x, player_y):
