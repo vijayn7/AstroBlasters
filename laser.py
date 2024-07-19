@@ -7,8 +7,9 @@ class Laser:
         self.x = x
         self.y = y
         self.angle = angle
-        self.size = 10  # Size of the laser
+        self.size = 30  # Size of the laser
         self.speed = 10  # Speed of the laser
+        self.bounces = 3  # Maximum number of bounces
         self.laser = self.create_laser()
 
     def create_laser(self):
@@ -30,15 +31,36 @@ class Laser:
         canvas_width = self.canvas.winfo_width()
         canvas_height = self.canvas.winfo_height()
 
-        # Check for wall collisions and bounce
-        if self.x <= 0 or self.x >= canvas_width:
+        bounced = False
+
+        if self.x <= 0:
+            self.x = 0
             self.angle = 180 - self.angle
-        if self.y <= 0 or self.y >= canvas_height:
+            bounced = True
+        if self.x >= canvas_width:
+            self.x = canvas_width
+            self.angle = 180 - self.angle
+            bounced = True
+        if self.y <= 0:
+            self.y = 0
             self.angle = -self.angle
+            bounced = True
+        if self.y >= canvas_height:
+            self.y = canvas_height
+            self.angle = -self.angle
+            bounced = True
 
-        self.canvas.coords(self.laser, self.x, self.y, self.x + x_velocity, self.y + y_velocity)
+        if bounced:
+            self.bounces -= 1
+            if self.bounces <= 0:
+                self.canvas.delete(self.laser)
+                return
 
-        # Remove the laser if it goes out of bounds
-        if (self.x < 0 or self.x > canvas_width or
-            self.y < 0 or self.y > canvas_height):
-            self.canvas.delete(self.laser)
+        # Update the laser line
+        angle_rad = math.radians(self.angle)
+        x_end = self.x + self.size * math.cos(angle_rad)
+        y_end = self.y + self.size * math.sin(angle_rad)
+        self.canvas.coords(self.laser, self.x, self.y, x_end, y_end)
+
+        # Continue moving the laser
+        self.canvas.after(20, self.move)
