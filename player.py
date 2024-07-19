@@ -1,9 +1,9 @@
 import tkinter as tk
 import math
-from laser import Laser  # Import the Laser class
+from laser import Laser
 
 class Player:
-    def __init__(self, canvas, x, y, size):
+    def __init__(self, canvas, x, y, size, mode):
         self.canvas = canvas
         self.x = x
         self.y = y
@@ -13,6 +13,7 @@ class Player:
         self.mouse_x = x  # Initialize mouse_x to player's start position
         self.mouse_y = y  # Initialize mouse_y to player's start position
         self.lasers = []
+        self.mode = mode  # Store the selected mode
         # Create player triangle
         self.player = self.create_triangle(x, y, size)
         self.isMoving = False
