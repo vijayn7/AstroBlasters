@@ -6,8 +6,8 @@ root = tk.Tk()
 root.title("Python-Game")
 
 # Set up the canvas
-canvas_width = 400
-canvas_height = 400
+canvas_width = 800
+canvas_height = 800
 canvas = tk.Canvas(root, width=canvas_width, height=canvas_height, bg="black")
 canvas.pack()
 
