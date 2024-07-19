@@ -1,5 +1,10 @@
+import math
+import random
 import tkinter as tk
 from player import Player
+from enemy import BasicDrone, FastScout, ArmoredTank, FighterJet, CamouflagedStealth, SuicideBomber, EliteGuardian, SwarmDrone
+
+enemies = []
 
 # Create the main window
 root = tk.Tk()
@@ -46,11 +51,19 @@ def transition_to_mode_selection():
 
 def transition_to_game(mode):
     canvas.delete("all")  # Clear the mode selection screen
-    # Initialize the game elements based on selected mode
+
+    # Initialize the game elements based on the selected mode
     player_size = 30
     player_x = canvas_width // 2
     player_y = canvas_height // 2
     player = Player(canvas, player_x, player_y, player_size, mode)  # Pass mode to Player
+
+    # Initialize the list of enemies
+    global enemies
+    enemies = []
+
+    if mode == "Orbital Defense":
+        spawn_enemies(canvas, player_x, player_y)
 
     # Bind key events to the Player instance methods
     root.bind('<KeyPress>', player.on_key_press)
@@ -59,6 +72,24 @@ def transition_to_game(mode):
 
     # Start the movement loop
     player.move()
+
+def spawn_enemies(canvas, player_x, player_y):
+    enemy_types = [BasicDrone, FastScout, ArmoredTank, FighterJet, CamouflagedStealth, SuicideBomber, EliteGuardian, SwarmDrone]
+    num_enemies = 10  # Number of enemies to spawn
+    
+    for _ in range(num_enemies):
+        # Random distance and angle from the player
+        distance = random.randint(100, 300)  # Distance from the player
+        angle = random.uniform(0, 2 * math.pi)  # Random angle
+        x = player_x + distance * math.cos(angle)
+        y = player_y + distance * math.sin(angle)
+
+        # Randomly select an enemy type
+        enemy_class = random.choice(enemy_types)
+        
+        # Create the enemy
+        enemy = enemy_class(canvas, x, y, player_x, player_y)
+        enemies.append(enemy)  # Add to the list of enemies
 
 # Create the home screen
 create_home_screen(canvas)
