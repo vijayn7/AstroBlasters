@@ -1,56 +1,43 @@
 import tkinter as tk
 from player import Player
 
-class GameApp:
-    def __init__(self, root):
-        self.root = root
-        self.root.title("AstroBlasters")
-        self.canvas_width = 800
-        self.canvas_height = 800
+# Create the main window
+root = tk.Tk()
+root.title("AstroBlasters")
 
-        # Set up the canvas
-        self.canvas = tk.Canvas(root, width=self.canvas_width, height=self.canvas_height, bg="black")
-        self.canvas.pack()
+# Set up the canvas
+canvas_width = 1000
+canvas_height = 800
+canvas = tk.Canvas(root, width=canvas_width, height=canvas_height, bg="black")
+canvas.pack()
 
-        # Create the home screen
-        self.create_home_screen()
+def create_home_screen(canvas):
+    # Draw the title of the game
+    canvas.create_text(canvas_width // 2, canvas_height // 2 - 50,
+                       text="AstroBlasters", font=("Helvetica", 48, "bold"), fill="#FFA500", tags="title")
 
-    def create_home_screen(self):
-        """Create the home screen with a title and start button."""
-        self.canvas.delete("all")  # Clear any existing content
+    # Draw the start button
+    button = tk.Button(root, text="Start", command=transition_to_game, font=("Helvetica", 24, "bold"), bg="#444", fg="white")
+    button_window = canvas.create_window(canvas_width // 2, canvas_height // 2 + 50, window=button, tags="button")
 
-        # Display the game title
-        self.canvas.create_text(self.canvas_width // 2, self.canvas_height // 2 - 50,
-                                text="AstroBlasters", font=("Helvetica", 40, "bold"), fill="white")
+def transition_to_game():
+    canvas.delete("all")  # Clear the home screen
+    # Initialize the game elements
+    player_size = 30
+    player_x = canvas_width // 2
+    player_y = canvas_height // 2
+    player = Player(canvas, player_x, player_y, player_size)
+    
+    # Bind key events to the Player instance methods
+    root.bind('<KeyPress>', player.on_key_press)
+    root.bind('<KeyRelease>', player.on_key_release)
+    canvas.bind('<Motion>', player.on_mouse_motion)
 
-        # Display the start button
-        self.start_button = tk.Button(self.root, text="Start Game", font=("Helvetica", 20), command=self.start_game)
-        self.start_button_window = self.canvas.create_window(self.canvas_width // 2, self.canvas_height // 2 + 50,
-                                                            window=self.start_button)
+    # Start the movement loop
+    player.move()
 
-    def start_game(self):
-        """Start the game by removing the home screen and setting up the game."""
-        self.canvas.delete("all")
-        self.start_button.destroy()
-        self.create_game_screen()
+# Create the home screen
+create_home_screen(canvas)
 
-    def create_game_screen(self):
-        """Set up the game screen with the player and background."""
-        # Create the player
-        self.player_size = 30
-        self.player_x = self.canvas_width // 2
-        self.player_y = self.canvas_height // 2
-        self.player = Player(self.canvas, self.player_x, self.player_y, self.player_size)
-
-        # Bind key events to the Player instance methods
-        self.root.bind('<KeyPress>', self.player.on_key_press)
-        self.root.bind('<KeyRelease>', self.player.on_key_release)
-        self.canvas.bind('<Motion>', self.player.on_mouse_motion)
-
-        # Start the movement loop
-        self.player.move()
-
-if __name__ == "__main__":
-    root = tk.Tk()
-    app = GameApp(root)
-    root.mainloop()
+# Run the main loop
+root.mainloop()
