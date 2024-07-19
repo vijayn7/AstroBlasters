@@ -1,5 +1,6 @@
 import tkinter as tk
 import math
+from laser import Laser  # Import the Laser class
 
 class Player:
     def __init__(self, canvas, x, y, size):
@@ -11,13 +12,14 @@ class Player:
         self.move_directions = {'w': False, 's': False, 'a': False, 'd': False}
         self.mouse_x = x  # Initialize mouse_x to player's start position
         self.mouse_y = y  # Initialize mouse_y to player's start position
+        self.lasers = []
         # Create player triangle
         self.player = self.create_triangle(x, y, size)
         self.isMoving = False
         self.canvas.update()  # Ensure the canvas is updated to get correct dimensions
 
     def create_triangle(self, x, y, size):
-        """Create a polygon object to represent the player."""
+        """Create a multicolored triangle representing the player."""
         angle_rad = math.radians(self.angle)
         # Calculate triangle points based on angle and size
         point1 = (x + size * math.cos(angle_rad), y + size * math.sin(angle_rad))
@@ -97,12 +99,25 @@ class Player:
         # Update isMoving based on current movement directions
         self.isMoving = self.is_moving()
 
+        # Move lasers
+        for laser in self.lasers:
+            laser.move()
+
+        # Remove lasers that are out of bounds
+        self.lasers = [laser for laser in self.lasers if self.canvas.coords(laser.laser)]
+
         self.canvas.after(20, self.move)  # Call move every 20 ms for smooth movement
+
+    def shoot_laser(self):
+        """Shoot a laser in the direction the player is facing."""
+        self.lasers.append(Laser(self.canvas, self.x, self.y, self.angle))
 
     def on_key_press(self, event):
         if event.keysym in self.move_directions:
             self.move_directions[event.keysym] = True
             self.isMoving = self.is_moving()
+        if event.keysym == 'space':
+            self.shoot_laser()
 
     def on_key_release(self, event):
         if event.keysym in self.move_directions:
