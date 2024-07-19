@@ -15,7 +15,7 @@ canvas.pack()
 player_size = 30
 player_x = canvas_width // 2
 player_y = canvas_height // 2
-player = Player(canvas, player_x, player_y, player_size, "blue")
+player = Player(canvas, player_x, player_y, player_size)
 
 # Bind key events to the Player instance methods
 root.bind('<KeyPress>', player.on_key_press)
