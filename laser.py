@@ -11,6 +11,7 @@ class Laser:
         self.bounces = 3  # Maximum number of bounces (not used in Orbital Defense)
         self.mode = mode
         self.laser = self.create_laser()
+        self.exists = True  # Flag to check if the laser still exists
 
     def create_laser(self):
         angle_rad = math.radians(self.angle)
@@ -30,12 +31,10 @@ class Laser:
         canvas_height = self.canvas.winfo_height()
 
         if self.mode == "Orbital Defense":
-            # In Orbital Defense mode, lasers do not bounce
             if self.x <= 0 or self.x >= canvas_width or self.y <= 0 or self.y >= canvas_height:
                 self.canvas.delete(self.laser)
                 return
         else:
-            # For other modes, handle bouncing
             bounced = False
             if self.x <= 0:
                 self.x = 0
@@ -65,4 +64,11 @@ class Laser:
         y_end = self.y + self.size * math.sin(angle_rad)
         self.canvas.coords(self.laser, self.x, self.y, x_end, y_end)
 
+        # Schedule the next move
         self.canvas.after(20, self.move)
+
+
+    def delete(self):
+        if self.exists:
+            self.canvas.delete(self.laser)
+            self.exists = False

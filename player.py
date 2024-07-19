@@ -74,9 +74,11 @@ class Player:
         """Shoot a laser if cooldown period has passed."""
         current_time = time.time()
         if current_time - self.last_shot_time >= self.cooldown_period:
-            self.lasers.append(Laser(self.canvas, self.x, self.y, self.angle, self.mode))
+            laser = Laser(self.canvas, self.x, self.y, self.angle, self.mode)
+            self.lasers.append(laser)
             self.last_shot_time = current_time
             self.update_cooldown_bar()  # Update cooldown bar after shooting
+            laser.move()
 
     def on_key_press(self, event):
         if event.keysym in self.move_directions:
@@ -144,8 +146,4 @@ class Player:
         self.update_angle()
         self.isMoving = self.is_moving()
 
-        for laser in self.lasers:
-            laser.move()
-
-        self.lasers = [laser for laser in self.lasers if self.canvas.coords(laser.laser)]
         self.canvas.after(20, self.move)
