@@ -50,7 +50,7 @@ def transition_to_game(mode):
     player_size = 30
     player_x = canvas_width // 2
     player_y = canvas_height // 2
-    player = Player(canvas, player_x, player_y, player_size, mode)  # Adjust Player initialization if mode is needed
+    player = Player(canvas, player_x, player_y, player_size, mode)  # Pass mode to Player
 
     # Bind key events to the Player instance methods
     root.bind('<KeyPress>', player.on_key_press)

@@ -1,9 +1,11 @@
+# player.py
+
 import tkinter as tk
 import math
 from laser import Laser
 
 class Player:
-    def __init__(self, canvas, x, y, size, mode):
+    def __init__(self, canvas, x, y, size, mode="default"):
         self.canvas = canvas
         self.x = x
         self.y = y
@@ -13,7 +15,9 @@ class Player:
         self.mouse_x = x  # Initialize mouse_x to player's start position
         self.mouse_y = y  # Initialize mouse_y to player's start position
         self.lasers = []
-        self.mode = mode  # Store the selected mode
+        self.mode = mode
+        self.health = 100  # Default health
+        self.health_bar = self.create_health_bar()
         # Create player triangle
         self.player = self.create_triangle(x, y, size)
         self.isMoving = False
@@ -33,6 +37,27 @@ class Player:
             self.canvas.create_line(point2, point3, fill='green', width=2),
             self.canvas.create_line(point3, point1, fill='blue', width=2)
         ]
+
+    def create_health_bar(self):
+        """Create the health bar for the player."""
+        # Draw the background of the health bar
+        bar_width = 100
+        bar_height = 20
+        x = self.x - bar_width // 2
+        y = self.y + self.size + 10
+        bg = self.canvas.create_rectangle(x, y, x + bar_width, y + bar_height, fill="red", outline="black")
+        fg = self.canvas.create_rectangle(x, y, x + bar_width, y + bar_height, fill="green", outline="black")
+        return {'bg': bg, 'fg': fg, 'width': bar_width, 'height': bar_height}
+
+    def update_health_bar(self):
+        """Update the health bar based on current health."""
+        bar_width = self.health_bar['width']
+        current_width = (self.health / 100) * bar_width
+        self.canvas.coords(self.health_bar['fg'],
+                           self.x - bar_width // 2,
+                           self.y + self.size + 10,
+                           self.x - bar_width // 2 + current_width,
+                           self.y + self.size + 30)
 
     def getPlayerCoords(self):
         return self.canvas.coords(self.player[0])
@@ -64,17 +89,20 @@ class Player:
             self.canvas.create_line(point2, point3, fill='green', width=2),
             self.canvas.create_line(point3, point1, fill='blue', width=2)
         ]
+        # Update the health bar position
+        self.update_health_bar()
 
     def move(self):
         x_velocity, y_velocity = 0, 0
-        if self.move_directions['w']:
-            y_velocity = -5
-        if self.move_directions['s']:
-            y_velocity = 5
-        if self.move_directions['a']:
-            x_velocity = -5
-        if self.move_directions['d']:
-            x_velocity = 5
+        if self.mode != "Orbital Defense":
+            if self.move_directions['w']:
+                y_velocity = -5
+            if self.move_directions['s']:
+                y_velocity = 5
+            if self.move_directions['a']:
+                x_velocity = -5
+            if self.move_directions['d']:
+                x_velocity = 5
 
         # Move the player
         self.x += x_velocity
@@ -111,7 +139,7 @@ class Player:
 
     def shoot_laser(self):
         """Shoot a laser in the direction the player is facing."""
-        self.lasers.append(Laser(self.canvas, self.x, self.y, self.angle))
+        self.lasers.append(Laser(self.canvas, self.x, self.y, self.angle, self.mode))
 
     def on_key_press(self, event):
         if event.keysym in self.move_directions:
