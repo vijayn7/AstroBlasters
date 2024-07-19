@@ -1,60 +1,56 @@
 import tkinter as tk
-import math
-import random
 from player import Player
 
-class StarField:
-    def __init__(self, canvas, width, height, num_stars=100):
-        self.canvas = canvas
-        self.width = width
-        self.height = height
-        self.num_stars = num_stars
-        self.stars = []
-        self.create_stars()
-        self.move_stars()
+class GameApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("AstroBlasters")
+        self.canvas_width = 800
+        self.canvas_height = 800
 
-    def create_stars(self):
-        """Create a set of stars at random positions."""
-        for _ in range(self.num_stars):
-            x = random.randint(0, self.width)
-            y = random.randint(0, self.height)
-            size = random.randint(1, 3)  # Small size for stars
-            star = self.canvas.create_oval(x, y, x + size, y + size, fill='white', outline='white')
-            self.stars.append((star, x, y))
+        # Set up the canvas
+        self.canvas = tk.Canvas(root, width=self.canvas_width, height=self.canvas_height, bg="black")
+        self.canvas.pack()
 
-    def move_stars(self):
-        """Move stars to simulate a scrolling effect."""
-        for star, x, y in self.stars:
-            new_x = (x - 2) % self.width  # Move stars to the left and wrap around
-            self.canvas.coords(star, new_x, y, new_x + 3, y + 3)  # Adjust size here if needed
-        self.canvas.after(30, self.move_stars)  # Update stars every 30 ms
+        # Create the home screen
+        self.create_home_screen()
 
-# Create the main window
-root = tk.Tk()
-root.title("Python-Game")
+    def create_home_screen(self):
+        """Create the home screen with a title and start button."""
+        self.canvas.delete("all")  # Clear any existing content
 
-# Set up the canvas
-canvas_width = 800
-canvas_height = 800
-canvas = tk.Canvas(root, width=canvas_width, height=canvas_height, bg="black")
-canvas.pack()
+        # Display the game title
+        self.canvas.create_text(self.canvas_width // 2, self.canvas_height // 2 - 50,
+                                text="AstroBlasters", font=("Helvetica", 40, "bold"), fill="white")
 
-# Create the star field background
-star_field = StarField(canvas, canvas_width, canvas_height)
+        # Display the start button
+        self.start_button = tk.Button(self.root, text="Start Game", font=("Helvetica", 20), command=self.start_game)
+        self.start_button_window = self.canvas.create_window(self.canvas_width // 2, self.canvas_height // 2 + 50,
+                                                            window=self.start_button)
 
-# Create a Player instance
-player_size = 30
-player_x = canvas_width // 2
-player_y = canvas_height // 2
-player = Player(canvas, player_x, player_y, player_size)
+    def start_game(self):
+        """Start the game by removing the home screen and setting up the game."""
+        self.canvas.delete("all")
+        self.start_button.destroy()
+        self.create_game_screen()
 
-# Bind key events to the Player instance methods
-root.bind('<KeyPress>', player.on_key_press)
-root.bind('<KeyRelease>', player.on_key_release)
-canvas.bind('<Motion>', player.on_mouse_motion)
+    def create_game_screen(self):
+        """Set up the game screen with the player and background."""
+        # Create the player
+        self.player_size = 30
+        self.player_x = self.canvas_width // 2
+        self.player_y = self.canvas_height // 2
+        self.player = Player(self.canvas, self.player_x, self.player_y, self.player_size)
 
-# Start the movement loop
-player.move()
+        # Bind key events to the Player instance methods
+        self.root.bind('<KeyPress>', self.player.on_key_press)
+        self.root.bind('<KeyRelease>', self.player.on_key_release)
+        self.canvas.bind('<Motion>', self.player.on_mouse_motion)
 
-# Run the main loop
-root.mainloop()
+        # Start the movement loop
+        self.player.move()
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = GameApp(root)
+    root.mainloop()
