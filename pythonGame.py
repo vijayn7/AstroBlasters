@@ -1,5 +1,5 @@
 import tkinter as tk
-from player import Player
+from player import Player  # Import the Player class from player.py
 
 # Create the main window
 root = tk.Tk()
@@ -12,6 +12,9 @@ canvas = tk.Canvas(root, width=canvas_width, height=canvas_height, bg="black")
 canvas.pack()
 
 def create_home_screen(canvas):
+    # Clear any existing content on the canvas
+    canvas.delete("all")
+    
     # Draw the title of the game
     canvas.create_text(canvas_width // 2, canvas_height // 2 - 50,
                        text="AstroBlasters", font=("Helvetica", 48, "bold"), fill="#FFA500", tags="title")
