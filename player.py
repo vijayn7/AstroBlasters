@@ -9,6 +9,8 @@ class Player:
         self.size = size
         self.angle = 0  # Angle in degrees to represent direction
         self.move_directions = {'w': False, 's': False, 'a': False, 'd': False}
+        self.mouse_x = x  # Initialize mouse_x to player's start position
+        self.mouse_y = y  # Initialize mouse_y to player's start position
         # Create player triangle
         self.player = self.create_triangle(x, y, size)
         self.isMoving = False
@@ -36,10 +38,10 @@ class Player:
         """Return True if the player is currently moving, otherwise False."""
         return any(self.move_directions.values())
 
-    def update_angle(self, mouse_x, mouse_y):
+    def update_angle(self):
         """Update the angle based on the mouse position."""
         # Calculate angle in radians and convert to degrees
-        self.angle = math.degrees(math.atan2(mouse_y - self.y, mouse_x - self.x))
+        self.angle = math.degrees(math.atan2(self.mouse_y - self.y, self.mouse_x - self.x))
         self.redraw()
 
     def redraw(self):
@@ -89,8 +91,8 @@ class Player:
         if self.y + self.size > canvas_height:
             self.y = canvas_height - self.size
 
-        # Redraw the player at the new position
-        self.redraw()
+        # Update the angle based on the current mouse position
+        self.update_angle()
 
         # Update isMoving based on current movement directions
         self.isMoving = self.is_moving()
@@ -108,5 +110,6 @@ class Player:
             self.isMoving = self.is_moving()
 
     def on_mouse_motion(self, event):
-        """Update player direction based on mouse position."""
-        self.update_angle(event.x, event.y)
+        """Update mouse position for direction calculation."""
+        self.mouse_x = event.x
+        self.mouse_y = event.y
