@@ -90,31 +90,33 @@ class Laser:
                     break
 
     def is_collision(self, enemy_coords):
-        # Check if the laser intersects with a triangular enemy
-        if len(enemy_coords) != 6:
+        # Determine the type of enemy by checking the number of coordinates
+        if len(enemy_coords) == 6:  # Triangle
+            return self.check_triangle_collision(enemy_coords)
+        elif len(enemy_coords) == 4:  # Rectangle
+            return self.check_rectangle_collision(enemy_coords)
+        elif len(enemy_coords) == 5:  # Oval
+            return self.check_oval_collision(enemy_coords)
+        else:
             return False
 
-        x1, y1, x2, y2, x3, y3 = enemy_coords
+    def check_triangle_collision(self, coords):
+        x1, y1, x2, y2, x3, y3 = coords
         laser_coords = self.canvas.coords(self.laser)
-        if len(laser_coords) != 4:
-            return False
-
         lx1, ly1, lx2, ly2 = laser_coords
+        print(f"Triangle: {laser_coords}")
 
         # Check if the laser intersects any of the triangle's sides
         def on_segment(px, py, qx, qy, rx, ry):
-            """Check if point (rx, ry) lies on line segment (px, py) - (qx, qy)."""
             return (min(px, qx) <= rx <= max(px, qx)) and (min(py, qy) <= ry <= max(py, qy))
 
         def orientation(px, py, qx, qy, rx, ry):
-            """Find the orientation of the ordered triplet (px, py), (qx, qy), (rx, ry)."""
             val = (qy - py) * (rx - qx) - (qx - px) * (ry - qy)
             if val == 0:
                 return 0  # collinear
             return 1 if val > 0 else 2  # clockwise or counterclockwise
 
         def do_intersect(p1x, p1y, q1x, q1y, p2x, p2y, q2x, q2y):
-            """Check if line segments (p1x, p1y) - (q1x, q1y) and (p2x, p2y) - (q2x, q2y) intersect."""
             o1 = orientation(p1x, p1y, q1x, q1y, p2x, p2y)
             o2 = orientation(p1x, p1y, q1x, q1y, q2x, q2y)
             o3 = orientation(p2x, p2y, q2x, q2y, p1x, p1y)
@@ -134,16 +136,43 @@ class Laser:
 
             return False
 
-        collision = (
+        return (
             do_intersect(lx1, ly1, lx2, ly2, x1, y1, x2, y2) or
             do_intersect(lx1, ly1, lx2, ly2, x2, y2, x3, y3) or
             do_intersect(lx1, ly1, lx2, ly2, x3, y3, x1, y1)
         )
 
-        if collision:
-            print(f"Laser intersects with triangular enemy: ({x1}, {y1}, {x2}, {y2}, {x3}, {y3})")
-        
-        return collision
+    def check_rectangle_collision(self, coords):
+        x1, y1, x2, y2 = coords
+        laser_coords = self.canvas.coords(self.laser)
+        lx1, ly1, lx2, ly2 = laser_coords
+
+        def rect_intersect(x1, y1, x2, y2, lx1, ly1, lx2, ly2):
+            # Check if the rectangle and the laser intersect
+            return not (lx1 > x2 or lx2 < x1 or ly1 > y2 or ly2 < y1)
+
+        return rect_intersect(x1, y1, x2, y2, lx1, ly1, lx2, ly2)
+
+    def check_oval_collision(self, coords):
+        x1, y1, x2, y2 = coords
+        laser_coords = self.canvas.coords(self.laser)
+        lx1, ly1, lx2, ly2 = laser_coords
+
+        def point_inside_oval(px, py, cx1, cy1, cx2, cy2):
+            # Check if point (px, py) is inside the oval's bounding box
+            if cx1 <= px <= cx2 and cy1 <= py <= cy2:
+                # Check if point (px, py) is inside the actual oval
+                return ((px - (cx1 + cx2) / 2) ** 2 / ((cx2 - cx1) / 2) ** 2 + 
+                        (py - (cy1 + cy2) / 2) ** 2 / ((cy2 - cy1) / 2) ** 2) <= 1
+            return False
+
+        # Check if either end of the laser is inside the oval
+        if (point_inside_oval(lx1, ly1, x1, y1, x2, y2) or 
+            point_inside_oval(lx2, ly2, x1, y1, x2, y2)):
+            return True
+
+        # Check if the laser intersects with the oval's bounding box
+        return self.check_rectangle_collision([x1, y1, x2, y2])
 
     def apply_damage(self, enemy_id):
         # Find the enemy instance by ID and apply damage
@@ -157,4 +186,4 @@ class Laser:
     def delete(self):
         if self.exists:
             self.canvas.delete(self.laser)
-            self.exists = False
+            del self

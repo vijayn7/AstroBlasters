@@ -86,11 +86,11 @@ def spawn_enemies(mode, player_x, player_y):
 
 def update_enemies():
     global enemies
-    for enemy in enemies:
-        if not enemy.is_out_of_bounds():
-            enemy.move()
-        else:
-            enemies.remove(enemy)
+    # for enemy in enemies:
+    #     if not enemy.is_out_of_bounds():
+    #         enemy.move()
+    #     else:
+    #         enemies.remove(enemy)
     
     # Schedule the next update
     canvas.after(50, update_enemies)
