@@ -1,4 +1,7 @@
+# laser.py
+
 import math
+from enemy import Enemy
 
 class Laser:
     def __init__(self, canvas, x, y, angle, mode):
@@ -13,6 +16,7 @@ class Laser:
         self.laser = self.create_laser()
         self.exists = True  # Flag to check if the laser still exists
         self.damage = 50  # Damage value for testing purposes
+        self.enemy_map = Enemy.get_enemy_map()  # Retrieve enemy_map from Enemy class
 
     def create_laser(self):
         angle_rad = math.radians(self.angle)
@@ -75,24 +79,24 @@ class Laser:
     def check_collision(self):
         # Check collision with enemies
         for enemy_id in self.canvas.find_withtag("enemy"):
-            enemy_coords = self.canvas.coords(enemy_id)
-            if self.is_collision(enemy_coords):
-                print(f"Collision detected with enemy ID: {enemy_id}")
-                self.apply_damage(enemy_id)
-                self.canvas.delete(self.laser)
-                self.exists = False
-                break
+            enemy = self.enemy_map.get(enemy_id)
+            if enemy:
+                enemy_coords = self.canvas.coords(enemy_id)
+                if self.is_collision(enemy_coords):
+                    print(f"Collision detected with enemy ID: {enemy_id}")
+                    self.apply_damage(enemy_id)
+                    self.canvas.delete(self.laser)
+                    self.exists = False
+                    break
 
     def is_collision(self, enemy_coords):
         # Check if the laser intersects with a triangular enemy
         if len(enemy_coords) != 6:
-            print(f"Invalid enemy coordinates for triangle: {enemy_coords}")
             return False
 
         x1, y1, x2, y2, x3, y3 = enemy_coords
         laser_coords = self.canvas.coords(self.laser)
         if len(laser_coords) != 4:
-            print(f"Invalid laser coordinates: {laser_coords}")
             return False
 
         lx1, ly1, lx2, ly2 = laser_coords
@@ -143,19 +147,12 @@ class Laser:
 
     def apply_damage(self, enemy_id):
         # Find the enemy instance by ID and apply damage
-        enemy_coords = self.canvas.coords(enemy_id)
-        print(f"Attempting to apply damage to enemy ID: {enemy_id} with coordinates: {enemy_coords}")
-        
-        # Look for enemy with the given ID
-        if enemy_id in self.canvas.find_withtag("enemy"):
-            enemy_instance = self.canvas.find_withtag(enemy_id)[0]
-            # Check if the enemy instance has 'take_damage' method
-            if hasattr(enemy_instance, 'take_damage'):
-                enemy_instance.take_damage(self.damage)
-            else:
-                print(f"Enemy with ID {enemy_id} does not have 'take_damage' method.")
+        enemy = self.enemy_map.get(enemy_id)
+        if enemy:
+            enemy.take_damage(self.damage)
+            print(f"Applied {self.damage} damage to enemy ID: {enemy_id}")
         else:
-            print(f"Enemy with ID {enemy_id} not found.")
+            print(f"No enemy found for ID {enemy_id}")
 
     def delete(self):
         if self.exists:
