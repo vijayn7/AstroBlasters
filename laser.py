@@ -37,7 +37,7 @@ class Laser:
 
         if self.mode == "Orbital Defense":
             if self.x <= 0 or self.x >= canvas_width or self.y <= 0 or self.y >= canvas_height:
-                self.canvas.delete(self.laser)
+                self.delete()
                 self.exists = False
                 return
         else:
@@ -62,7 +62,7 @@ class Laser:
             if bounced:
                 self.bounces -= 1
                 if self.bounces <= 0:
-                    self.canvas.delete(self.laser)
+                    self.delete()
                     self.exists = False
                     return
 
@@ -85,7 +85,7 @@ class Laser:
                 if self.is_collision(enemy_coords):
                     print(f"Collision detected with enemy ID: {enemy_id}")
                     self.apply_damage(enemy_id)
-                    self.canvas.delete(self.laser)
+                    self.delete()
                     self.exists = False
                     break
 
@@ -103,8 +103,11 @@ class Laser:
     def check_triangle_collision(self, coords):
         x1, y1, x2, y2, x3, y3 = coords
         laser_coords = self.canvas.coords(self.laser)
-        lx1, ly1, lx2, ly2 = laser_coords
-        print(f"Triangle: {laser_coords}")
+        lx1, ly1, lx2, ly2 = 0, 0, 0, 0
+        try:
+            lx1, ly1, lx2, ly2 = laser_coords
+        except:
+            return False
 
         # Check if the laser intersects any of the triangle's sides
         def on_segment(px, py, qx, qy, rx, ry):
@@ -142,37 +145,65 @@ class Laser:
             do_intersect(lx1, ly1, lx2, ly2, x3, y3, x1, y1)
         )
 
-    def check_rectangle_collision(self, coords):
-        x1, y1, x2, y2 = coords
+    def check_rectangle_collision(self, rect_coords):
+        if len(rect_coords) != 4:
+            print(f"Error: Invalid rectangle coordinates: {rect_coords}")
+            return False
+
+        x1, y1, x2, y2 = rect_coords
         laser_coords = self.canvas.coords(self.laser)
+        if len(laser_coords) != 4:
+            # print(f"Error: Invalid laser coordinates: {laser_coords}")
+            return False
+
         lx1, ly1, lx2, ly2 = laser_coords
 
-        def rect_intersect(x1, y1, x2, y2, lx1, ly1, lx2, ly2):
-            # Check if the rectangle and the laser intersect
-            return not (lx1 > x2 or lx2 < x1 or ly1 > y2 or ly2 < y1)
+        def line_intersect(x1, y1, x2, y2, lx1, ly1, lx2, ly2):
+            def ccw(A, B, C):
+                return (C[1] - A[1]) * (B[0] - A[0]) > (B[1] - A[1]) * (C[0] - A[0])
 
-        return rect_intersect(x1, y1, x2, y2, lx1, ly1, lx2, ly2)
+            def intersect(A, B, C, D):
+                return ccw(A, C, D) != ccw(B, C, D) and ccw(A, B, C) != ccw(A, B, D)
 
-    def check_oval_collision(self, coords):
-        x1, y1, x2, y2 = coords
+            A = (x1, y1)
+            B = (x2, y2)
+            C = (lx1, ly1)
+            D = (lx2, ly2)
+            return intersect(A, B, C, D) or intersect(C, D, A, B)
+
+        # Check if laser intersects with any of the rectangle's edges
+        return (
+            line_intersect(x1, y1, x2, y1, lx1, ly1, lx2, ly2) or
+            line_intersect(x2, y1, x2, y2, lx1, ly1, lx2, ly2) or
+            line_intersect(x2, y2, x1, y2, lx1, ly1, lx2, ly2) or
+            line_intersect(x1, y2, x1, y1, lx1, ly1, lx2, ly2)
+        )
+
+    def check_oval_collision(self, oval_coords):
+        if len(oval_coords) != 4:
+            print(f"Error: Invalid oval coordinates: {oval_coords}")
+            return False
+
+        x1, y1, x2, y2 = oval_coords
         laser_coords = self.canvas.coords(self.laser)
+        if len(laser_coords) != 4:
+            print(f"Error: Invalid laser coordinates: {laser_coords}")
+            return False
+
         lx1, ly1, lx2, ly2 = laser_coords
 
         def point_inside_oval(px, py, cx1, cy1, cx2, cy2):
-            # Check if point (px, py) is inside the oval's bounding box
-            if cx1 <= px <= cx2 and cy1 <= py <= cy2:
-                # Check if point (px, py) is inside the actual oval
-                return ((px - (cx1 + cx2) / 2) ** 2 / ((cx2 - cx1) / 2) ** 2 + 
-                        (py - (cy1 + cy2) / 2) ** 2 / ((cy2 - cy1) / 2) ** 2) <= 1
-            return False
+            center_x = (cx1 + cx2) / 2
+            center_y = (cy1 + cy2) / 2
+            a = (cx2 - cx1) / 2
+            b = (cy2 - cy1) / 2
+            return ((px - center_x) ** 2 / a ** 2) + ((py - center_y) ** 2 / b ** 2) <= 1
 
-        # Check if either end of the laser is inside the oval
-        if (point_inside_oval(lx1, ly1, x1, y1, x2, y2) or 
-            point_inside_oval(lx2, ly2, x1, y1, x2, y2)):
-            return True
+        def oval_intersect(lx1, ly1, lx2, ly2, cx1, cy1, cx2, cy2):
+            return (point_inside_oval(lx1, ly1, cx1, cy1, cx2, cy2) or
+                    point_inside_oval(lx2, ly2, cx1, cy1, cx2, cy2))
 
-        # Check if the laser intersects with the oval's bounding box
-        return self.check_rectangle_collision([x1, y1, x2, y2])
+        return oval_intersect(lx1, ly1, lx2, ly2, x1, y1, x2, y2)
 
     def apply_damage(self, enemy_id):
         # Find the enemy instance by ID and apply damage
