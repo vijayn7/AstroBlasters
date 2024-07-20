@@ -74,65 +74,88 @@ class Laser:
 
     def check_collision(self):
         # Check collision with enemies
-        for enemy in self.canvas.find_withtag("enemy"):
-            if self.is_collision(enemy):
-                self.apply_damage(enemy)
+        for enemy_id in self.canvas.find_withtag("enemy"):
+            enemy_coords = self.canvas.coords(enemy_id)
+            if self.is_collision(enemy_coords):
+                print(f"Collision detected with enemy ID: {enemy_id}")
+                self.apply_damage(enemy_id)
                 self.canvas.delete(self.laser)
                 self.exists = False
                 break
 
-    def is_collision(self, enemy):
-        # Check if the laser intersects with the enemy
-        enemy_coords = self.canvas.coords(enemy)
-        if len(enemy_coords) < 4:
-            print(f"Invalid enemy coordinates: {enemy_coords}")
+    def is_collision(self, enemy_coords):
+        # Check if the laser intersects with a triangular enemy
+        if len(enemy_coords) != 6:
+            print(f"Invalid enemy coordinates for triangle: {enemy_coords}")
             return False
 
-        x0, y0, x1, y1 = enemy_coords
-
+        x1, y1, x2, y2, x3, y3 = enemy_coords
         laser_coords = self.canvas.coords(self.laser)
         if len(laser_coords) != 4:
             print(f"Invalid laser coordinates: {laser_coords}")
             return False
 
-        lx0, ly0, lx1, ly1 = laser_coords
+        lx1, ly1, lx2, ly2 = laser_coords
 
-        # Check bounding box collision
-        box_collision = not (lx1 < x0 or lx0 > x1 or ly1 < y0 or ly0 > y1)
-        if not box_collision:
+        # Check if the laser intersects any of the triangle's sides
+        def on_segment(px, py, qx, qy, rx, ry):
+            """Check if point (rx, ry) lies on line segment (px, py) - (qx, qy)."""
+            return (min(px, qx) <= rx <= max(px, qx)) and (min(py, qy) <= ry <= max(py, qy))
+
+        def orientation(px, py, qx, qy, rx, ry):
+            """Find the orientation of the ordered triplet (px, py), (qx, qy), (rx, ry)."""
+            val = (qy - py) * (rx - qx) - (qx - px) * (ry - qy)
+            if val == 0:
+                return 0  # collinear
+            return 1 if val > 0 else 2  # clockwise or counterclockwise
+
+        def do_intersect(p1x, p1y, q1x, q1y, p2x, p2y, q2x, q2y):
+            """Check if line segments (p1x, p1y) - (q1x, q1y) and (p2x, p2y) - (q2x, q2y) intersect."""
+            o1 = orientation(p1x, p1y, q1x, q1y, p2x, p2y)
+            o2 = orientation(p1x, p1y, q1x, q1y, q2x, q2y)
+            o3 = orientation(p2x, p2y, q2x, q2y, p1x, p1y)
+            o4 = orientation(p2x, p2y, q2x, q2y, q1x, q1y)
+
+            if o1 != o2 and o3 != o4:
+                return True
+
+            if o1 == 0 and on_segment(p1x, p1y, q1x, q1y, p2x, p2y):
+                return True
+            if o2 == 0 and on_segment(p1x, p1y, q1x, q1y, q2x, q2y):
+                return True
+            if o3 == 0 and on_segment(p2x, p2y, q2x, q2y, p1x, p1y):
+                return True
+            if o4 == 0 and on_segment(p2x, p2y, q2x, q2y, q1x, q1y):
+                return True
+
             return False
 
-        # Check line intersection (if bounding box collision detected)
-        def is_point_inside(px, py):
-            return x0 <= px <= x1 and y0 <= py <= y1
-
-        def ccw(A, B, C):
-            return (C[1] - A[1]) * (B[0] - A[0]) > (B[1] - A[1]) * (C[0] - A[0])
-
-        def lines_intersect(A, B, C, D):
-            return ccw(A, C, D) != ccw(B, C, D) and ccw(A, B, C) != ccw(A, B, D)
-
-        def line_box_intersect(lx0, ly0, lx1, ly1, x0, y0, x1, y1):
-            box_corners = [(x0, y0), (x1, y0), (x1, y1), (x0, y1)]
-            for i in range(4):
-                next_i = (i + 1) % 4
-                if lines_intersect((lx0, ly0), (lx1, ly1), box_corners[i], box_corners[next_i]):
-                    return True
-            return is_point_inside(lx0, ly0) or is_point_inside(lx1, ly1)
-
-        collision = line_box_intersect(lx0, ly0, lx1, ly1, x0, y0, x1, y1)
+        collision = (
+            do_intersect(lx1, ly1, lx2, ly2, x1, y1, x2, y2) or
+            do_intersect(lx1, ly1, lx2, ly2, x2, y2, x3, y3) or
+            do_intersect(lx1, ly1, lx2, ly2, x3, y3, x1, y1)
+        )
 
         if collision:
-            print(f"Laser intersects with enemy: ({x0}, {y0}, {x1}, {y1})")
-
+            print(f"Laser intersects with triangular enemy: ({x1}, {y1}, {x2}, {y2}, {x3}, {y3})")
+        
         return collision
 
-    def apply_damage(self, enemy):
-        # Find the enemy instance and apply damage
-        for item in self.canvas.find_withtag("enemy"):
-            if item == enemy:
-                enemy_instance = self.canvas.find_withtag(item)[0]
-                enemy_instance.apply_damage(self.damage)
+    def apply_damage(self, enemy_id):
+        # Find the enemy instance by ID and apply damage
+        enemy_coords = self.canvas.coords(enemy_id)
+        print(f"Attempting to apply damage to enemy ID: {enemy_id} with coordinates: {enemy_coords}")
+        
+        # Look for enemy with the given ID
+        if enemy_id in self.canvas.find_withtag("enemy"):
+            enemy_instance = self.canvas.find_withtag(enemy_id)[0]
+            # Check if the enemy instance has 'take_damage' method
+            if hasattr(enemy_instance, 'take_damage'):
+                enemy_instance.take_damage(self.damage)
+            else:
+                print(f"Enemy with ID {enemy_id} does not have 'take_damage' method.")
+        else:
+            print(f"Enemy with ID {enemy_id} not found.")
 
     def delete(self):
         if self.exists:
