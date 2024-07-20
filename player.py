@@ -18,7 +18,7 @@ class Player:
 
         # Cooldown attributes
         self.last_shot_time = 0
-        self.cooldown_period = 1  # Cooldown period in seconds
+        self.cooldown_period = 0.1  # Cooldown period in seconds
         self.cooldown_bar_width = 80  # Reduced width
         self.cooldown_bar_height = 8   # Reduced height
 

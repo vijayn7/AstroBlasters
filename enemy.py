@@ -2,6 +2,8 @@ import math
 import random
 
 class Enemy:
+    enemy_map = {}
+
     def __init__(self, canvas, x, y, player_x, player_y):
         self.canvas = canvas
         self.x = x
@@ -14,28 +16,34 @@ class Enemy:
         self.movement_type = "straight"  # Default movement type
         self.health = 100  # Default health, can be overridden by subclasses
         self.max_health = self.health
+        self.health_bar = None
+        self.id = None  # ID assigned by the canvas, initialized to None
         self.create_shape()
-        self.health_bar = self.create_health_bar()
+        self.create_health_bar()
+
+    @staticmethod
+    def get_enemy_map():
+        return Enemy.enemy_map
 
     def create_shape(self):
         """Create the enemy's shape. To be implemented by subclasses."""
         pass
 
     def create_health_bar(self):
-        """Create the health bar above the enemy."""
+        """Create the health bar above the enemy's shape."""
         if not self.shape:
-            return None  # Return None if the shape has not been created
+            return  # Return None if the shape has not been created
 
         coords = self.canvas.coords(self.shape)
         if len(coords) != 4:
-            return None  # Return None if coordinates are not valid
+            return  # Return None if coordinates are not valid
 
         x0, y0, x1, y1 = coords
         health_bar_y = y0 - 10  # Position the health bar above the enemy
-        return self.canvas.create_rectangle(x0, health_bar_y, x1, health_bar_y + 5, fill="green", outline="")
+        self.health_bar = self.canvas.create_rectangle(x0, health_bar_y, x1, health_bar_y + 5, fill="green", outline="")
 
     def update_health_bar(self):
-        """Update the health bar to reflect current health."""
+        """Update the health bar based on the current health."""
         if not self.health_bar:
             return  # If health bar was not created, do nothing
 
@@ -45,9 +53,7 @@ class Enemy:
 
         x0, y0, x1, y1 = coords
         health_ratio = self.health / self.max_health
-        # Calculate the new end position of the health bar
         new_width = (x1 - x0) * health_ratio
-        # Update the health bar position
         self.canvas.coords(self.health_bar, x0, y0 - 10, x0 + new_width, y0 - 5)
 
         # Change color from green to red as health decreases
@@ -66,6 +72,12 @@ class Enemy:
             zigzag_angle = angle_rad + (0.2 * math.sin(random.uniform(0, 2 * math.pi)))
             self.x += self.speed * math.cos(zigzag_angle)
             self.y += self.speed * math.sin(zigzag_angle)
+        elif self.movement_type == "circular":
+            angle_to_player = math.atan2(self.player_y - self.y, self.player_x - self.x)
+            radius = 100  # Fixed radius for circular movement
+            angle_rad = math.atan2(self.y - self.player_y, self.x - self.player_x) + self.speed / radius
+            self.x = self.player_x + radius * math.cos(angle_rad)
+            self.y = self.player_y + radius * math.sin(angle_rad)
 
         if self.shape:
             if self.shape_type == "oval":
@@ -89,14 +101,15 @@ class Enemy:
 
     def destroy(self):
         """Destroy the enemy and remove from canvas."""
-        self.canvas.delete(self.shape)
-        self.canvas.delete(self.health_bar)
+        if self.shape:
+            self.canvas.delete(self.shape)
+        if self.health_bar:
+            self.canvas.delete(self.health_bar)
 
     def is_out_of_bounds(self):
         canvas_width = self.canvas.winfo_width()
         canvas_height = self.canvas.winfo_height()
         return not (0 <= self.x <= canvas_width and 0 <= self.y <= canvas_height)
-
 
 class BasicDrone(Enemy):
     def __init__(self, canvas, x, y, player_x, player_y):
@@ -107,8 +120,10 @@ class BasicDrone(Enemy):
 
     def create_shape(self):
         self.shape_type = "oval"
-        self.shape = self.canvas.create_oval(self.x - 10, self.y - 10, self.x + 10, self.y + 10, fill="blue")
-
+        self.id = self.canvas.create_oval(self.x - 10, self.y - 10, self.x + 10, self.y + 10, fill="blue", tags="enemy")
+        self.shape = self.id
+        if self.id:
+            Enemy.enemy_map[self.id] = self
 
 class FastScout(Enemy):
     def __init__(self, canvas, x, y, player_x, player_y):
@@ -120,8 +135,10 @@ class FastScout(Enemy):
 
     def create_shape(self):
         self.shape_type = "oval"
-        self.shape = self.canvas.create_oval(self.x - 8, self.y - 8, self.x + 8, self.y + 8, fill="green")
-
+        self.id = self.canvas.create_oval(self.x - 8, self.y - 8, self.x + 8, self.y + 8, fill="green", tags="enemy")
+        self.shape = self.id
+        if self.id:
+            Enemy.enemy_map[self.id] = self
 
 class ArmoredTank(Enemy):
     def __init__(self, canvas, x, y, player_x, player_y):
@@ -133,8 +150,10 @@ class ArmoredTank(Enemy):
 
     def create_shape(self):
         self.shape_type = "rectangle"
-        self.shape = self.canvas.create_rectangle(self.x - 15, self.y - 15, self.x + 15, self.y + 15, fill="red")
-
+        self.id = self.canvas.create_rectangle(self.x - 15, self.y - 15, self.x + 15, self.y + 15, fill="red", tags="enemy")
+        self.shape = self.id
+        if self.id:
+            Enemy.enemy_map[self.id] = self
 
 class FighterJet(Enemy):
     def __init__(self, canvas, x, y, player_x, player_y):
@@ -146,9 +165,12 @@ class FighterJet(Enemy):
 
     def create_shape(self):
         self.shape_type = "polygon"
-        self.shape = self.canvas.create_polygon(self.x - 10, self.y - 10, self.x + 10, self.y, self.x - 10, self.y + 10, fill="white")
+        self.id = self.canvas.create_polygon(self.x - 10, self.y - 10, self.x + 10, self.y, self.x - 10, self.y + 10, fill="white", tags="enemy")
+        self.shape = self.id
         # Ensure the health bar is created after the shape
-        self.health_bar = self.create_health_bar()
+        self.create_health_bar()
+        if self.id:
+            Enemy.enemy_map[self.id] = self
 
 class CamouflagedStealth(Enemy):
     def __init__(self, canvas, x, y, player_x, player_y):
@@ -159,8 +181,10 @@ class CamouflagedStealth(Enemy):
 
     def create_shape(self):
         self.shape_type = "oval"
-        self.shape = self.canvas.create_oval(self.x - 10, self.y - 10, self.x + 10, self.y + 10, fill="gray")
-
+        self.id = self.canvas.create_oval(self.x - 10, self.y - 10, self.x + 10, self.y + 10, fill="gray", tags="enemy")
+        self.shape = self.id
+        if self.id:
+            Enemy.enemy_map[self.id] = self
 
 class SuicideBomber(Enemy):
     def __init__(self, canvas, x, y, player_x, player_y):
@@ -172,9 +196,12 @@ class SuicideBomber(Enemy):
 
     def create_shape(self):
         self.shape_type = "polygon"
-        self.shape = self.canvas.create_polygon(self.x - 10, self.y - 10, self.x + 10, self.y - 10, self.x, self.y + 10, fill="purple")
+        self.id = self.canvas.create_polygon(self.x - 10, self.y - 10, self.x + 10, self.y - 10, self.x, self.y + 10, fill="purple", tags="enemy")
+        self.shape = self.id
         # Ensure the health bar is created after the shape
-        self.health_bar = self.create_health_bar()
+        self.create_health_bar()
+        if self.id:
+            Enemy.enemy_map[self.id] = self
 
 class EliteGuardian(Enemy):
     def __init__(self, canvas, x, y, player_x, player_y):
@@ -186,8 +213,10 @@ class EliteGuardian(Enemy):
 
     def create_shape(self):
         self.shape_type = "rectangle"
-        self.shape = self.canvas.create_rectangle(self.x - 12, self.y - 12, self.x + 12, self.y + 12, fill="gold")
-
+        self.id = self.canvas.create_rectangle(self.x - 12, self.y - 12, self.x + 12, self.y + 12, fill="gold", tags="enemy")
+        self.shape = self.id
+        if self.id:
+            Enemy.enemy_map[self.id] = self
 
 class SwarmDrone(Enemy):
     def __init__(self, canvas, x, y, player_x, player_y):
@@ -199,4 +228,7 @@ class SwarmDrone(Enemy):
 
     def create_shape(self):
         self.shape_type = "oval"
-        self.shape = self.canvas.create_oval(self.x - 5, self.y - 5, self.x + 5, self.y + 5, fill="pink")
+        self.id = self.canvas.create_oval(self.x - 5, self.y - 5, self.x + 5, self.y + 5, fill="pink", tags="enemy")
+        self.shape = self.id
+        if self.id:
+            Enemy.enemy_map[self.id] = self

@@ -74,7 +74,7 @@ def spawn_enemies(mode, player_x, player_y):
     enemy_types = [BasicDrone, FastScout, ArmoredTank, FighterJet, CamouflagedStealth, SuicideBomber, EliteGuardian, SwarmDrone]
     
     # Spawn enemies in a random position around the player
-    for _ in range(10):  # Number of enemies
+    for _ in range(20):  # Number of enemies
         enemy_type = random.choice(enemy_types)
         angle = random.uniform(0, 2 * math.pi)
         distance = random.uniform(100, 300)  # Random distance from the player
