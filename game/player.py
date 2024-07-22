@@ -1,6 +1,6 @@
 import tkinter as tk
 import math
-from laser import Laser
+from game.laser import Laser
 import time  # For cooldown timer
 
 class Player:

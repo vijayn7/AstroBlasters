@@ -1,7 +1,7 @@
 import math
 import tkinter as tk
-from player import Player
-from enemy import BasicDrone, FastScout, ArmoredTank, FighterJet, CamouflagedStealth, SuicideBomber, EliteGuardian, SwarmDrone
+from game.player import Player
+from game.enemy import BasicDrone, FastScout, ArmoredTank, FighterJet, CamouflagedStealth, SuicideBomber, EliteGuardian, SwarmDrone
 import random
 
 # Create the main window

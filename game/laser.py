@@ -1,7 +1,7 @@
 # laser.py
 
 import math
-from enemy import Enemy
+from game.enemy import Enemy
 
 class Laser:
     def __init__(self, canvas, x, y, angle, mode):
