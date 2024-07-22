@@ -15,14 +15,34 @@ canvas = tk.Canvas(root, width=canvas_width, height=canvas_height, bg="black")
 canvas.pack()
 
 enemies = []  # Global list to hold enemies
+stars = []  # List to hold star data for animation
 
 def create_star_field(canvas, num_stars=100):
     """Draws a starry background on the canvas."""
+    global stars
     for _ in range(num_stars):
         x = random.randint(0, canvas_width)
         y = random.randint(0, canvas_height)
         size = random.randint(1, 3)  # Small variation in star size
-        canvas.create_oval(x - size, y - size, x + size, y + size, fill="white", outline="white", tags="star")
+        star = canvas.create_oval(x - size, y - size, x + size, y + size, fill="white", outline="white", tags="star")
+        stars.append((star, size))
+
+def animate_stars():
+    """Animate the stars to create a moving background effect."""
+    for star, size in stars:
+        x0, y0, x1, y1 = canvas.coords(star)
+        move_x = random.uniform(-0.5, 0.5)  # Small horizontal movement
+        move_y = random.uniform(-0.5, 0.5)  # Small vertical movement
+
+        canvas.move(star, move_x, move_y)
+
+        # Check bounds and reset if necessary
+        if x1 < 0 or x0 > canvas_width or y1 < 0 or y0 > canvas_height:
+            new_x = random.randint(0, canvas_width)
+            new_y = random.randint(0, canvas_height)
+            canvas.coords(star, new_x - size, new_y - size, new_x + size, new_y + size)
+
+    canvas.after(50, animate_stars)  # Repeat animation
 
 def create_home_screen(canvas):
     # Draw the title of the game
@@ -55,7 +75,9 @@ def create_mode_selection_screen(canvas):
 
 def transition_to_mode_selection():
     canvas.delete("all")  # Clear the home screen
+    create_star_field(canvas)  # Recreate star field for mode selection
     create_mode_selection_screen(canvas)
+    animate_stars()  # Start animating stars
 
 def transition_to_game(mode):
     canvas.delete("all")  # Clear the mode selection screen
@@ -105,8 +127,10 @@ def update_enemies():
     # Schedule the next update
     canvas.after(50, update_enemies)
 
-# Create the home screen
+# Create the home screen and start star animation
+create_star_field(canvas)  # Initial star field for home screen
 create_home_screen(canvas)
+animate_stars()  # Start animating stars
 
 # Run the main loop
 root.mainloop()
