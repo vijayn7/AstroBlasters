@@ -1,64 +1,113 @@
 # AstroBlasters
 
-**AstroBlasters** is an exciting 2D space shooter game developed using Python's Tkinter library. The game features different modes, player movement, shooting mechanics, and a cooldown system for firing lasers. 
-
-## Table of Contents
-
-- [Features](#features)
-- [Installation](#installation)
-- [Usage](#usage)
-- [File Structure](#file-structure)
-- [License](#license)
+AstroBlasters is a space-themed game built with Python and Tkinter. Players navigate through various game modes, shooting enemies and dodging obstacles in a dynamic, star-filled environment.
 
 ## Features
 
-- **Game Modes**: Includes different game modes such as "Orbital Defense" and placeholders for additional modes.
-- **Player Controls**: Use the `W`, `A`, `S`, `D` keys to move the player, and the left mouse button to shoot lasers.
-- **Laser Mechanics**: Lasers can bounce off the canvas edges (except in "Orbital Defense" mode) and have a cooldown period between shots.
-- **Cooldown System**: A visual cooldown bar shows the remaining time before the player can shoot again.
+- **Starry Background**: Animated star field for a visually appealing background.
+- **Game Modes**: Multiple game modes with unique mechanics.
+- **Enemies**: Various enemy types with different movement patterns and behaviors.
+- **Pause Menu**: Functionality to pause the game and return to the main menu.
 
-## Installation
+## Getting Started
 
-1. Ensure you have Python installed on your system.
-2. Clone this repository to your local machine:
+### Prerequisites
+
+- Python 3.x
+- Tkinter (usually comes with Python installation)
+- Docker (optional, for containerization)
+
+### Installation
+
+1. **Clone the Repository:**
+
    ```bash
-   git clone https://github.com/yourusername/AstroBlasters.git
+   git clone https://github.com/yourusername/astrobusters.git
+   cd astrobusters
    ```
-3. Navigate into the project directory:
+
+2. **Install Dependencies:**
+
+   It is recommended to use a virtual environment. Install dependencies using `pip`:
+
    ```bash
-   cd AstroBlasters
+   pip install -r requirements.txt
    ```
-4. Install any dependencies (if needed). The current project does not require additional Python packages beyond the standard library.
 
-## Usage
+3. **Run the Game:**
 
-1. Run the main game file:
    ```bash
-   python pythonGame.py
+   python game/main.py
    ```
-2. The game will display a home screen with a "Start" button. Click it to go to the mode selection screen.
-3. Choose a game mode and start playing!
 
-## File Structure
+## Dockerization
 
-- **`pythonGame.py`**: The main script that initializes the Tkinter window, sets up the game canvas, and manages transitions between screens.
-- **`player.py`**: Defines the `Player` class, including player movement, shooting mechanics, and cooldown bar functionality.
-- **`laser.py`**: Defines the `Laser` class, including laser creation, movement, and bouncing behavior.
+To build and run the Docker container for AstroBlasters, follow these steps:
 
-### Code Overview
+1. **Build the Docker Image:**
 
-- **`pythonGame.py`**: 
-  - Initializes the game window and canvas.
-  - Defines functions for creating the home screen and mode selection screen.
-  - Handles transitions between screens and initializes the player.
+   ```bash
+   docker build -t astrobusters .
+   ```
 
-- **`player.py`**: 
-  - Contains the `Player` class with methods for creating and moving the player, shooting lasers, and updating the cooldown bar.
-  - Binds mouse and keyboard events to player actions.
+2. **Run the Docker Container:**
 
-- **`laser.py`**: 
-  - Contains the `Laser` class with methods for creating and moving lasers, handling bouncing, and interacting with canvas boundaries.
+   ```bash
+   docker run -p 4000:80 astrobusters
+   ```
+
+   The game will be accessible at `http://localhost:4000` inside the container.
+
+### Docker Compose (Optional)
+
+If you have multiple services or dependencies, you can use Docker Compose. Create a `docker-compose.yml` file and use the following commands:
+
+1. **Build and Start Services:**
+
+   ```bash
+   docker-compose up --build
+   ```
+
+## Unit Testing
+
+Unit tests are located in the `tests` directory. To run the tests:
+
+1. **Install Test Dependencies:**
+
+   ```bash
+   pip install -r requirements-test.txt
+   ```
+
+2. **Run the Tests:**
+
+   ```bash
+   pytest
+   ```
+
+## Project Structure
+
+- `game/`: Contains the game logic and main entry point.
+  - `main.py`: Main script to start the game.
+  - `player.py`: Defines the `Player` class.
+  - `laser.py`: Defines the `Laser` class.
+  - `enemy.py`: Defines enemy classes.
+- `tests/`: Contains unit tests for the project.
+  - `test_player.py`: Tests for the `Player` class.
+  - `test_laser.py`: Tests for the `Laser` class.
+  - `test_enemy.py`: Tests for enemy classes.
+- `Dockerfile`: Docker configuration for containerizing the application.
+- `docker-compose.yml`: Docker Compose configuration (if needed).
+- `requirements.txt`: Python dependencies.
+- `requirements-test.txt`: Test dependencies.
+
+## Contributing
+
+Contributions are welcome! Please fork the repository and submit a pull request with your changes.
 
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+## Contact
+
+For questions or comments, please reach out to [vijaynannapuraju@gmail.com](mailto:vijaynannapuraju@gmail.com).
