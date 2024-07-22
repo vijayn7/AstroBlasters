@@ -16,6 +16,14 @@ canvas.pack()
 
 enemies = []  # Global list to hold enemies
 
+def create_star_field(canvas, num_stars=100):
+    """Draws a starry background on the canvas."""
+    for _ in range(num_stars):
+        x = random.randint(0, canvas_width)
+        y = random.randint(0, canvas_height)
+        size = random.randint(1, 3)  # Small variation in star size
+        canvas.create_oval(x - size, y - size, x + size, y + size, fill="white", outline="white", tags="star")
+
 def create_home_screen(canvas):
     # Draw the title of the game
     canvas.create_text(canvas_width // 2, canvas_height // 2 - 50,
@@ -51,6 +59,8 @@ def transition_to_mode_selection():
 
 def transition_to_game(mode):
     canvas.delete("all")  # Clear the mode selection screen
+    create_star_field(canvas)  # Add starry background
+
     # Initialize the game elements based on selected mode
     player_size = 30
     player_x = canvas_width // 2
@@ -74,7 +84,7 @@ def spawn_enemies(mode, player_x, player_y):
     enemy_types = [BasicDrone, FastScout, ArmoredTank, FighterJet, CamouflagedStealth, SuicideBomber, EliteGuardian, SwarmDrone]
     
     # Spawn enemies in a random position around the player
-    for _ in range(20):  # Number of enemies
+    for _ in range(5):  # Number of enemies
         enemy_type = random.choice(enemy_types)
         angle = random.uniform(0, 2 * math.pi)
         distance = random.uniform(100, 300)  # Random distance from the player
